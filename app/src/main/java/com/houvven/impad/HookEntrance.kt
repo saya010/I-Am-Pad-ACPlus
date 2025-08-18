@@ -43,13 +43,26 @@ object HookEntrance : IYukiHookXposedInit {
     private fun PackageParam.processCustomWeWork() {
         val targetClassName = "com.tencent.weworklocal.foundation.impl.WeworkServiceImpl"
         val targetMethodName = "isAndroidPad"
+        val isPadMethodName = "isPad"
+        val wwUtilClassName = "com.tencent.wework.common.utils.WwUtil"
+        val kbMethodName = "kb"
+        val kbqMethodName = "kbq"
+        val kbhdMethodName = "kbhd"
         ApplicationClass.method {
             name("attach")
         }.hook().after {
             val context = args[0] as Context
             val classLoader = context.classLoader
             val clazz = targetClassName.toClass(classLoader)
+            // hook isAndroidPad
             clazz.method { name(targetMethodName) }.hook().replaceToTrue()
+            // hook isPad
+            clazz.method { name(isPadMethodName) }.hook().replaceToTrue()
+            // hook WwUtil.kb/kbq/kbhd
+            val wwUtilClazz = wwUtilClassName.toClass(classLoader)
+            wwUtilClazz.method { name(kbMethodName) }.hook().replaceToTrue()
+            wwUtilClazz.method { name(kbqMethodName) }.hook().replaceToTrue()
+            wwUtilClazz.method { name(kbhdMethodName) }.hook().replaceTo { result = 8.1 }
         }
     }
 
