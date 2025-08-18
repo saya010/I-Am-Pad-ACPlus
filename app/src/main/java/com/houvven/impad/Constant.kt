@@ -6,7 +6,9 @@ const val QQ_PACKAGE_NAME = "com.tencent.mobileqq"
 
 const val WECHAT_PACKAGE_NAME = "com.tencent.mm"
 
+
 const val WEWORK_PACKAGE_NAME = "com.tencent.wework"
+const val CUSTOM_WEWORK_PACKAGE_NAME = "com.airchina.wecompro"
 
 const val DING_TALK_PACKAGE_NAME = "com.alibaba.android.rimet"
 
