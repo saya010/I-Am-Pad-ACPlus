@@ -38,6 +38,8 @@ object HookEntrance : IYukiHookXposedInit {
                 packageName.contains(DING_TALK_PACKAGE_NAME) -> processDingTalk()
             }
         }
+    }
+
     private fun PackageParam.processCustomWeWork() {
         val targetClassName = "com.tencent.weworklocal.foundation.impl.WeworkServiceImpl"
         val targetMethodName = "isAndroidPad"
@@ -49,7 +51,6 @@ object HookEntrance : IYukiHookXposedInit {
             val clazz = targetClassName.toClass(classLoader)
             clazz.method { name(targetMethodName) }.hook().replaceToTrue()
         }
-    }
     }
 
     private fun PackageParam.processQQ() {
