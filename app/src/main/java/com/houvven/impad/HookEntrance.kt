@@ -29,6 +29,7 @@ object HookEntrance : IYukiHookXposedInit {
     }
 
     override fun onHook() = YukiHookAPI.encase {
+        YLog.error("[模块测试] I-Am-Pad-ACPlus模块已被Xposed加载，当前包：$packageName")
         loadApp {
             when {
                 packageName.contains(QQ_PACKAGE_NAME) -> processQQ()
