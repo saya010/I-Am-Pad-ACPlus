@@ -72,7 +72,7 @@ object HookEntrance : IYukiHookXposedInit {
                         // hook mergeFrom(CodedInputByteBufferNano) 实例方法
                         clazz.method { name("mergeFrom"); param(codedInputClass) }.hook().before {
                             YLog.debug("拦截撤回 mergeFrom(CodedInputByteBufferNano): $className")
-                            result = thisObject // 或 result = null，按需
+                            result = null // 或 result = it.thisObject，按需
                         }
                     }
                 }.onFailure {
