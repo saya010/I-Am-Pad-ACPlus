@@ -47,18 +47,36 @@ object HookEntrance : IYukiHookXposedInit {
     private fun PackageParam.processAirChinaWeComProRecallBlock() {
         val recallReqClass = "CRTX_WWK.Announce.RecallAnnounceReq"
         val recallRspClass = "CRTX_WWK.Announce.RecallAnnounceRsp"
+        val codedInputClass = try {
+            Class.forName("com.google.protobuf.nano.CodedInputByteBufferNano")
+        } catch (e: Throwable) {
+            null
+        }
         ApplicationClass.method { name("attach") }.hook().after {
             val context = args[0] as Context
             val classLoader = context.classLoader
             listOf(recallReqClass, recallRspClass).forEach { className ->
                 runCatching {
                     val clazz = className.toClass(classLoader)
-                    clazz.method { name("parseFrom") }.hook().before {
-                        YLog.debug("拦截撤回 parseFrom: $className")
+                    // hook parseFrom(byte[])
+                    clazz.method { name("parseFrom"); param(ByteArray::class.java) }.hook().before {
+                        YLog.debug("拦截撤回 parseFrom(byte[]): $className")
                         result = null
                     }
+                    // hook parseFrom(CodedInputByteBufferNano)
+                    if (codedInputClass != null) {
+                        clazz.method { name("parseFrom"); param(codedInputClass) }.hook().before {
+                            YLog.debug("拦截撤回 parseFrom(CodedInputByteBufferNano): $className")
+                            result = null
+                        }
+                        // hook mergeFrom(CodedInputByteBufferNano) 实例方法
+                        clazz.method { name("mergeFrom"); param(codedInputClass) }.hook().before {
+                            YLog.debug("拦截撤回 mergeFrom(CodedInputByteBufferNano): $className")
+                            result = thisObject // 或 result = null，按需
+                        }
+                    }
                 }.onFailure {
-                    YLog.error("Hook recall parseFrom failed in $className: $it")
+                    YLog.error("Hook recall parseFrom/mergeFrom failed in $className: $it")
                 }
             }
         }
