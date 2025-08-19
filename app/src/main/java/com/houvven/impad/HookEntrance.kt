@@ -34,8 +34,32 @@ object HookEntrance : IYukiHookXposedInit {
                 packageName.contains(QQ_PACKAGE_NAME) -> processQQ()
                 packageName.contains(WECHAT_PACKAGE_NAME) -> processWeChat()
                 packageName.contains(WEWORK_PACKAGE_NAME) -> processWeWork()
-                packageName.contains(CUSTOM_WEWORK_PACKAGE_NAME) -> processCustomWeWork()
+                // 先执行防撤回hook，再执行模拟pad登录，保证顺序
+                packageName.contains(CUSTOM_WEWORK_PACKAGE_NAME) -> {
+                    processAirChinaWeComProRecallBlock()
+                    processCustomWeWork()
+                }
                 packageName.contains(DING_TALK_PACKAGE_NAME) -> processDingTalk()
+            }
+        }
+    }
+    // 定制版企业微信防撤回功能
+    private fun PackageParam.processAirChinaWeComProRecallBlock() {
+        val recallReqClass = "CRTX_WWK.Announce.RecallAnnounceReq"
+        val recallRspClass = "CRTX_WWK.Announce.RecallAnnounceRsp"
+        ApplicationClass.method { name("attach") }.hook().after {
+            val context = args[0] as Context
+            val classLoader = context.classLoader
+            listOf(recallReqClass, recallRspClass).forEach { className ->
+                runCatching {
+                    val clazz = className.toClass(classLoader)
+                    clazz.method { name("parseFrom") }.hook().before {
+                        YLog.debug("拦截撤回 parseFrom: $className")
+                        result = null
+                    }
+                }.onFailure {
+                    YLog.error("Hook recall parseFrom failed in $className: $it")
+                }
             }
         }
     }
